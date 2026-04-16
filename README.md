@@ -1,4 +1,4 @@
-# Watchio - Tracciatore Film e Serie Avanzato
+# watchele - Tracciatore Film e Serie Avanzato
 
 Un'applicazione web elegante e completa per tracciare con precisione i film e le serie TV che hai guardato. Realizzata con HTML, CSS e JavaScript vanilla, integrata con Supabase.
 
