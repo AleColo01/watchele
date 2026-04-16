@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watchio - Tracciatore Film e Serie</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>📺 Watchio</h1>
+                <p>La tua collezione di film e serie</p>
+            </div>
+        </header>
+
+        <!-- Add New Item Form - Collapsible -->
+        <section class="form-section">
+            <button class="form-toggle" id="formToggle">
+                <span class="toggle-icon">➕</span>
+                <span class="toggle-text">Aggiungi Nuovo Film/Serie</span>
+                <span class="toggle-arrow">▼</span>
+            </button>
+            
+            <form id="addForm" class="form-content" style="display: none;">
+                <!-- Basic Info -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="title">Titolo *</label>
+                        <input 
+                            type="text" 
+                            id="title" 
+                            placeholder="Titolo film o serie"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="type">Tipo *</label>
+                        <select id="type" required>
+                            <option value="">Seleziona tipo</option>
+                            <option value="movie">Film</option>
+                            <option value="series">Serie</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Detailed Ratings Section -->
+                <fieldset class="ratings-fieldset">
+                    <legend>Voti Dettagliati (1-10)</legend>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="votoInizio">Voto Inizio</label>
+                            <input 
+                                type="number" 
+                                id="votoInizio" 
+                                min="1" 
+                                max="10" 
+                                placeholder="7"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="votoFine">Voto Fine</label>
+                            <input 
+                                type="number" 
+                                id="votoFine" 
+                                min="1" 
+                                max="10" 
+                                placeholder="9"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="votoTecnico">Voto Tecnico</label>
+                            <input 
+                                type="number" 
+                                id="votoTecnico" 
+                                min="1" 
+                                max="10" 
+                                placeholder="8"
+                                required
+                            >
+                            <small>Regia, fotografia, montaggio</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="votoSceneggiatura">Voto Sceneggiatura</label>
+                            <input 
+                                type="number" 
+                                id="votoSceneggiatura" 
+                                min="1" 
+                                max="10" 
+                                placeholder="8"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="votoAttori">Voto Attori</label>
+                            <input 
+                                type="number" 
+                                id="votoAttori" 
+                                min="1" 
+                                max="10" 
+                                placeholder="9"
+                                required
+                            >
+                        </div>
+                    </div>
+                </fieldset>
+
+                <!-- Additional Info -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="personaggio">Personaggio Preferito</label>
+                        <input 
+                            type="text" 
+                            id="personaggio" 
+                            placeholder="Es: Tony Stark"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input 
+                            type="checkbox" 
+                            id="risiguarderebbe"
+                        >
+                        Lo riguarderei
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-primary">Aggiungi Voce</button>
+            </form>
+        </section>
+
+        <!-- Loading & Error Messages -->
+        <div id="loading" class="message loading" style="display: none;">Caricamento...</div>
+        <div id="error" class="message error" style="display: none;"></div>
+        <div id="success" class="message success" style="display: none;">Voce aggiunta con successo!</div>
+
+        <!-- Items List -->
+        <section class="list-section">
+            <div class="list-header">
+                <h2>I Tuoi Film e Serie</h2>
+                
+                <!-- Filters Toggle Button -->
+                <button class="filters-toggle" id="filtersToggle">
+                    <span class="toggle-icon">🔎</span>
+                    <span class="toggle-text">Filtri e Ricerca</span>
+                    <span class="toggle-arrow">▼</span>
+                </button>
+                
+                <!-- Search and Sort Controls -->
+                <div class="controls-content" id="controlsContent" style="display: none;">
+                <div class="controls">
+                    <div class="search-group">
+                        <input 
+                            type="text" 
+                            id="searchInput" 
+                            placeholder="Cerca per titolo..."
+                            class="search-input"
+                        >
+                    </div>
+
+                    <div class="sort-group">
+                        <label for="sortSelect">Ordina per:</label>
+                        <select id="sortSelect" class="sort-select">
+                            <option value="recent">Più Recenti</option>
+                            <option value="rating-desc">Voto (Alto → Basso)</option>
+                            <option value="rating-asc">Voto (Basso → Alto)</option>
+                            <option value="title">Titolo (A → Z)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterType">Tipo:</label>
+                        <select id="filterType" class="filter-select">
+                            <option value="">Tutti</option>
+                            <option value="movie">Film</option>
+                            <option value="series">Serie</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterRisiguarda">Rewatch:</label>
+                        <select id="filterRisiguarda" class="filter-select">
+                            <option value="">Tutti</option>
+                            <option value="true">Sì</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <div id="itemsList" class="items-list">
+                <div class="empty-state">Nessun film ancora. Aggiungi il primo qui sopra!</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Supabase JavaScript Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
+
+    <!-- Form Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form Toggle
+            const formToggle = document.getElementById('formToggle');
+            const formContent = document.querySelector('.form-content');
+            let formOpen = false;
+
+            formToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                formOpen = !formOpen;
+                
+                if (formOpen) {
+                    formContent.style.display = 'block';
+                    formContent.style.animation = 'slideDown 0.3s ease-out';
+                    formToggle.classList.add('open');
+                } else {
+                    formContent.style.animation = 'slideUp 0.3s ease-out';
+                    setTimeout(() => {
+                        formContent.style.display = 'none';
+                    }, 300);
+                    formToggle.classList.remove('open');
+                }
+            });
+
+            // Filters Toggle
+            const filtersToggle = document.getElementById('filtersToggle');
+            const controlsContent = document.getElementById('controlsContent');
+            let filtersOpen = false;
+
+            filtersToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                filtersOpen = !filtersOpen;
+                
+                if (filtersOpen) {
+                    controlsContent.style.display = 'block';
+                    controlsContent.style.animation = 'slideDown 0.3s ease-out';
+                    filtersToggle.classList.add('open');
+                } else {
+                    controlsContent.style.animation = 'slideUp 0.3s ease-out';
+                    setTimeout(() => {
+                        controlsContent.style.display = 'none';
+                    }, 300);
+                    filtersToggle.classList.remove('open');
+                }
+            });
+        });
+    </script>
+
+    <script src="app.js"></script>
+</body>
+</html>

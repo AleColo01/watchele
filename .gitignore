@@ -1,0 +1,27 @@
+# Environment files (never commit these!)
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if using any tools)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build and dist
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
