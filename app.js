@@ -184,7 +184,7 @@ function createItemElement(item) {
         notesHTML += `<div class="item-notes"><strong>Personaggio preferito:</strong> ${escapeHtml(item.personaggio_preferito)}</div>`;
     }
     if (item.risiguarderebbe) {
-        notesHTML += `<div style="margin-top: 8px;"><span class="risiguarda-badge">✓ Lo risiguarderebbe</span></div>`;
+        notesHTML += `<div style="margin-top: 8px;"><span class="risiguarda-badge">✓ rewatch approved</span></div>`;
     }
 
     const posterHTML = item.poster_url 
