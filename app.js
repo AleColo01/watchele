@@ -25,7 +25,6 @@ const votoTecnicoInput = document.getElementById('votoTecnico');
 const votoSceneggiaturaInput = document.getElementById('votoSceneggiatura');
 const votoAttoriInput = document.getElementById('votoAttori');
 const personaggioInput = document.getElementById('personaggio');
-const posterUrlInput = document.getElementById('posterUrl');
 const risiguarderebbe = document.getElementById('risiguarderebbe');
 
 const searchInput = document.getElementById('searchInput');
@@ -263,7 +262,6 @@ async function handleAddItem(e) {
     const votoSceneggiatura = parseInt(votoSceneggiaturaInput.value);
     const votoAttori = parseInt(votoAttoriInput.value);
     const personaggio = personaggioInput.value.trim() || null;
-    let posterUrl = posterUrlInput.value.trim() || null;
     const risiguardebeMark = risiguarderebbe.checked;
 
     // Validate
@@ -275,10 +273,8 @@ async function handleAddItem(e) {
     try {
         showLoading(true);
 
-        // Try to fetch poster if not provided
-        if (!posterUrl) {
-            posterUrl = await fetchPosterUrl(title);
-        }
+        // Always fetch poster automatically from TMDb
+        const posterUrl = await fetchPosterUrl(title);
 
         // Insert into database
         const { data, error } = await supabaseClient
