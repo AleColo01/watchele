@@ -47,5 +47,41 @@ CREATE POLICY "Allow anonymous access" ON movies
   WITH CHECK (true);
 
 -- ============================================
--- That's it! Your table is ready to use.
+-- That's it! Your movies table is ready to use.
+
+-- ============================================
+-- Activities Table for PlayEle
+-- ============================================
+
+DROP TABLE IF EXISTS activities;
+
+CREATE TABLE activities (
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  
+  -- Activity info
+  activity_name text NOT NULL,
+  winner text NOT NULL CHECK (winner IN ('ELE', 'ALE')),
+  
+  -- Auto-generated icon based on activity name
+  activity_icon text,
+  
+  -- Timestamps
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+-- Create index for faster sorting by creation date
+CREATE INDEX idx_activities_created_at ON activities(created_at DESC);
+
+-- Enable Row Level Security
+ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
+
+-- Create policy allowing anonymous reads and inserts
+CREATE POLICY "Allow anonymous access" ON activities
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- ============================================
+-- Activities table is ready to use!
 -- ============================================

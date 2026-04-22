@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>watchele - Tracciatore Film e Serie</title>
+    <title>ELE - Watchio & PlayEle</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,12 +12,46 @@
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="header-content">
-                <h1>📺 watchele</h1>
-                <p>La tua collezione di film e serie</p>
+        <!-- NAVIGATION BAR -->
+        <nav class="navbar">
+            <button class="nav-btn" id="navHome" data-page="home">🐧 ELE</button>
+            <button class="nav-btn" id="navWatch" data-page="watch">📺 watchele</button>
+            <button class="nav-btn" id="navPlay" data-page="play">🎮 PlayEle</button>
+        </nav>
+
+        <!-- HOME PAGE - ELE -->
+        <section id="home-section" class="page-section active">
+            <header class="home-header">
+                <div class="home-content">
+                    <div class="penguin-icon">🐧</div>
+                    <h1>ELE</h1>
+                    <p>Benvenuto! Scegli cosa vuoi fare:</p>
+                </div>
+            </header>
+            <div class="home-grid">
+                <div class="home-card" id="card-watch">
+                    <div class="card-icon">📺</div>
+                    <h2>watchele</h2>
+                    <p>Traccia i tuoi film e serie preferiti con voti dettagliati e note personali</p>
+                    <button class="btn-primary">Entra</button>
+                </div>
+                <div class="home-card" id="card-play">
+                    <div class="card-icon">🎮</div>
+                    <h2>PlayEle</h2>
+                    <p>Competi con le tue attività e vedi chi vince di più con le icone divertenti</p>
+                    <button class="btn-primary">Entra</button>
+                </div>
             </div>
-        </header>
+        </section>
+
+        <!-- WATCHELE PAGE -->
+        <section id="watch-section" class="page-section">
+            <header>
+                <div class="header-content">
+                    <h1>📺 watchele</h1>
+                    <p>La tua collezione di film e serie</p>
+                </div>
+            </header>
 
         <!-- Add New Item Form - Collapsible -->
         <section class="form-section">
@@ -205,6 +239,71 @@
                 <div class="empty-state">Nessun film ancora. Aggiungi il primo qui sopra!</div>
             </div>
         </section>
+
+        <!-- PLAYELE PAGE -->
+        <section id="play-section" class="page-section">
+            <header>
+                <div class="header-content">
+                    <h1>🎮 PlayEle</h1>
+                    <p>Competi e guarda le statistiche</p>
+                </div>
+            </header>
+
+            <!-- Add Activity Form -->
+            <section class="form-section">
+                <button class="form-toggle" id="formPlayToggle">
+                    <span class="toggle-icon">➕</span>
+                    <span class="toggle-text">Aggiungi Attività</span>
+                    <span class="toggle-arrow">▼</span>
+                </button>
+                
+                <form id="addActivityForm" class="form-content" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="activityName">Nome Attività *</label>
+                            <input 
+                                type="text" 
+                                id="activityName" 
+                                placeholder="Es: Calcio, Nuoto, Lettura..."
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="activityWinner">Chi ha vinto? *</label>
+                            <select id="activityWinner" required>
+                                <option value="">Seleziona vincitore</option>
+                                <option value="ELE">ELE</option>
+                                <option value="ALE">ALE</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Aggiungi Attività</button>
+                </form>
+            </section>
+
+            <!-- Loading & Error Messages -->
+            <div id="playLoading" class="message loading" style="display: none;">Caricamento...</div>
+            <div id="playError" class="message error" style="display: none;"></div>
+            <div id="playSuccess" class="message success" style="display: none;">Attività aggiunta con successo!</div>
+
+            <!-- Leaderboard -->
+            <section class="list-section">
+                <h2>🏆 Classifica</h2>
+                <div id="leaderboard" class="leaderboard">
+                    <div class="empty-state">Nessuna attività ancora. Aggiungi la prima qui sopra!</div>
+                </div>
+            </section>
+
+            <!-- Activities List -->
+            <section class="list-section">
+                <h2>📋 Tutte le Attività</h2>
+                <div id="activitiesList" class="activities-list">
+                    <div class="empty-state">Nessuna attività ancora. Aggiungi la prima qui sopra!</div>
+                </div>
+            </section>
+        </section>
     </div>
 
     <!-- Supabase JavaScript Client Library -->
@@ -218,45 +317,114 @@
             const formContent = document.querySelector('.form-content');
             let formOpen = false;
 
-            formToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                formOpen = !formOpen;
-                
-                if (formOpen) {
-                    formContent.style.display = 'block';
-                    formContent.style.animation = 'slideDown 0.3s ease-out';
-                    formToggle.classList.add('open');
-                } else {
-                    formContent.style.animation = 'slideUp 0.3s ease-out';
-                    setTimeout(() => {
-                        formContent.style.display = 'none';
-                    }, 300);
-                    formToggle.classList.remove('open');
-                }
-            });
+            if (formToggle) {
+                formToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    formOpen = !formOpen;
+                    
+                    if (formOpen) {
+                        formContent.style.display = 'block';
+                        formContent.style.animation = 'slideDown 0.3s ease-out';
+                        formToggle.classList.add('open');
+                    } else {
+                        formContent.style.animation = 'slideUp 0.3s ease-out';
+                        setTimeout(() => {
+                            formContent.style.display = 'none';
+                        }, 300);
+                        formToggle.classList.remove('open');
+                    }
+                });
+            }
+
+            // PlayEle Form Toggle
+            const formPlayToggle = document.getElementById('formPlayToggle');
+            const formPlayContent = document.querySelector('#addActivityForm');
+            let formPlayOpen = false;
+
+            if (formPlayToggle) {
+                formPlayToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    formPlayOpen = !formPlayOpen;
+                    
+                    if (formPlayOpen) {
+                        formPlayContent.style.display = 'block';
+                        formPlayContent.style.animation = 'slideDown 0.3s ease-out';
+                        formPlayToggle.classList.add('open');
+                    } else {
+                        formPlayContent.style.animation = 'slideUp 0.3s ease-out';
+                        setTimeout(() => {
+                            formPlayContent.style.display = 'none';
+                        }, 300);
+                        formPlayToggle.classList.remove('open');
+                    }
+                });
+            }
 
             // Filters Toggle
             const filtersToggle = document.getElementById('filtersToggle');
             const controlsContent = document.getElementById('controlsContent');
             let filtersOpen = false;
 
-            filtersToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                filtersOpen = !filtersOpen;
-                
-                if (filtersOpen) {
-                    controlsContent.style.display = 'block';
-                    controlsContent.style.animation = 'slideDown 0.3s ease-out';
-                    filtersToggle.classList.add('open');
-                } else {
-                    controlsContent.style.animation = 'slideUp 0.3s ease-out';
-                    setTimeout(() => {
-                        controlsContent.style.display = 'none';
-                    }, 300);
-                    filtersToggle.classList.remove('open');
-                }
+            if (filtersToggle) {
+                filtersToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    filtersOpen = !filtersOpen;
+                    
+                    if (filtersOpen) {
+                        controlsContent.style.display = 'block';
+                        controlsContent.style.animation = 'slideDown 0.3s ease-out';
+                        filtersToggle.classList.add('open');
+                    } else {
+                        controlsContent.style.animation = 'slideUp 0.3s ease-out';
+                        setTimeout(() => {
+                            controlsContent.style.display = 'none';
+                        }, 300);
+                        filtersToggle.classList.remove('open');
+                    }
+                });
+            }
+
+            // Navigation
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const page = this.getAttribute('data-page');
+                    showPage(page);
+                });
             });
+
+            // Home page card buttons
+            const cardWatch = document.getElementById('card-watch');
+            const cardPlay = document.getElementById('card-play');
+            if (cardWatch) {
+                cardWatch.querySelector('.btn-primary').addEventListener('click', () => showPage('watch'));
+            }
+            if (cardPlay) {
+                cardPlay.querySelector('.btn-primary').addEventListener('click', () => showPage('play'));
+            }
+
+            // Set active nav button on init
+            updateActiveNav('home');
         });
+
+        function showPage(page) {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            const targetSection = document.getElementById(page + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            updateActiveNav(page);
+        }
+
+        function updateActiveNav(page) {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-page') === page);
+            });
+        }
     </script>
 
     <script src="app.js"></script>

@@ -46,8 +46,277 @@ filterRisiguarda.addEventListener('change', applyFiltersAndSort);
 
 // ============== INITIALIZATION ==============
 document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize WatchEle
     await fetchAndDisplayItems();
+    
+    // Initialize PlayEle
+    initPlayEle();
+    
+    // Setup PlayEle event listeners
+    const addActivityForm = document.getElementById('addActivityForm');
+    if (addActivityForm) {
+        addActivityForm.addEventListener('submit', handleAddActivity);
+    }
 });
+
+// ============== PLAYELE - ICON MAPPING ==============
+const activityIcons = {
+    // Sports
+    'calcio': '⚽',
+    'nuoto': '🏊',
+    'tennis': '🎾',
+    'pallavolo': '🏐',
+    'basket': '🏀',
+    'corsa': '🏃',
+    'ciclismo': '🚴',
+    'sci': '⛷️',
+    'pattinaggio': '⛸️',
+    'boxe': '🥊',
+    'wrestling': '🤼',
+    'karate': '🥋',
+    'golf': '⛳',
+    'escursione': '🥾',
+    'scalata': '🧗',
+    
+    // Creative
+    'disegno': '🎨',
+    'pittura': '🖼️',
+    'musica': '🎵',
+    'canto': '🎤',
+    'danza': '💃',
+    'recitazione': '🎭',
+    'fotografia': '📷',
+    'video': '🎬',
+    'cucina': '👨‍🍳',
+    'lettura': '📚',
+    'scrittura': '✍️',
+    
+    // Gaming & Entertainment
+    'videogioco': '🎮',
+    'gioco': '🎲',
+    'scacchi': '♟️',
+    'puzzle': '🧩',
+    'cinema': '🍿',
+    'serie': '📺',
+    
+    // Learning
+    'lingua': '🗣️',
+    'programmazione': '💻',
+    'matematica': '🧮',
+    'studio': '📖',
+    
+    // Other
+    'giardinaggio': '🌱',
+    'viaggio': '✈️',
+    'shopping': '🛍️',
+    'meditazione': '🧘',
+    'yoga': '🧘',
+    'fitness': '💪'
+};
+
+function getActivityIcon(name) {
+    const lowerName = name.toLowerCase();
+    
+    // Check for exact match
+    if (activityIcons[lowerName]) {
+        return activityIcons[lowerName];
+    }
+    
+    // Check for partial match
+    for (const [key, icon] of Object.entries(activityIcons)) {
+        if (lowerName.includes(key) || key.includes(lowerName)) {
+            return icon;
+        }
+    }
+    
+    // Default icon if no match
+    return '⭐';
+}
+
+// ============== PLAYELE - INITIALIZATION ==============
+let allActivities = [];
+
+function initPlayEle() {
+    fetchAndDisplayActivities();
+}
+
+// ============== PLAYELE - FETCH ACTIVITIES ==============
+async function fetchAndDisplayActivities() {
+    const playLoading = document.getElementById('playLoading');
+    const playError = document.getElementById('playError');
+    
+    try {
+        playLoading.style.display = 'block';
+        
+        const { data, error } = await supabaseClient
+            .from('activities')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        allActivities = data || [];
+        displayLeaderboard();
+        displayActivities();
+        playLoading.style.display = 'none';
+    } catch (error) {
+        playError.textContent = 'Errore nel caricamento delle attività: ' + error.message;
+        playError.style.display = 'block';
+        playLoading.style.display = 'none';
+    }
+}
+
+// ============== PLAYELE - DISPLAY LEADERBOARD ==============
+function displayLeaderboard() {
+    const leaderboard = document.getElementById('leaderboard');
+    
+    if (allActivities.length === 0) {
+        leaderboard.innerHTML = '<div class="empty-state">Nessuna attività ancora. Aggiungi la prima qui sopra!</div>';
+        return;
+    }
+    
+    // Count wins for each person
+    const winCounts = {
+        'ELE': 0,
+        'ALE': 0
+    };
+    
+    allActivities.forEach(activity => {
+        winCounts[activity.winner]++;
+    });
+    
+    // Sort by wins descending
+    const standings = [
+        { name: 'ELE', wins: winCounts['ELE'], icon: '🐧' },
+        { name: 'ALE', wins: winCounts['ALE'], icon: '🎭' }
+    ].sort((a, b) => b.wins - a.wins);
+    
+    leaderboard.innerHTML = standings.map((player, index) => `
+        <div class="leaderboard-item">
+            <div class="leaderboard-rank">${index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}</div>
+            <div class="leaderboard-info">
+                <div class="leaderboard-person">${player.icon} ${player.name}</div>
+                <div class="leaderboard-stats">${player.wins} ${player.wins === 1 ? 'vittoria' : 'vittorie'}</div>
+            </div>
+            <div class="leaderboard-count">${player.wins}</div>
+        </div>
+    `).join('');
+}
+
+// ============== PLAYELE - DISPLAY ACTIVITIES ==============
+function displayActivities() {
+    const activitiesList = document.getElementById('activitiesList');
+    
+    if (allActivities.length === 0) {
+        activitiesList.innerHTML = '<div class="empty-state">Nessuna attività ancora. Aggiungi la prima qui sopra!</div>';
+        return;
+    }
+    
+    activitiesList.innerHTML = allActivities.map(activity => {
+        const icon = getActivityIcon(activity.activity_name);
+        const winnerIcon = activity.winner === 'ELE' ? '🐧' : '🎭';
+        
+        return `
+            <div class="activity-item">
+                <div class="activity-icon">${icon}</div>
+                <div class="activity-content">
+                    <div class="activity-name">${escapeHtml(activity.activity_name)}</div>
+                    <div class="activity-winner">Vinto da: <strong>${winnerIcon} ${activity.winner}</strong></div>
+                </div>
+                <button class="activity-delete" onclick="handleDeleteActivity(${activity.id})">Elimina</button>
+            </div>
+        `;
+    }).join('');
+}
+
+// ============== PLAYELE - ADD ACTIVITY ==============
+async function handleAddActivity(e) {
+    e.preventDefault();
+    
+    const activityName = document.getElementById('activityName').value.trim();
+    const activityWinner = document.getElementById('activityWinner').value;
+    
+    const playLoading = document.getElementById('playLoading');
+    const playError = document.getElementById('playError');
+    const playSuccess = document.getElementById('playSuccess');
+    
+    if (!activityName || !activityWinner) {
+        playError.textContent = 'Per favore, completa tutti i campi';
+        playError.style.display = 'block';
+        return;
+    }
+    
+    try {
+        playLoading.style.display = 'block';
+        playError.style.display = 'none';
+        
+        const icon = getActivityIcon(activityName);
+        
+        const { data, error } = await supabaseClient
+            .from('activities')
+            .insert([{
+                activity_name: activityName,
+                winner: activityWinner,
+                activity_icon: icon,
+                created_at: new Date().toISOString()
+            }])
+            .select();
+
+        if (error) throw error;
+
+        document.getElementById('addActivityForm').reset();
+        playSuccess.textContent = 'Attività aggiunta con successo!';
+        playSuccess.style.display = 'block';
+        
+        setTimeout(() => {
+            playSuccess.style.display = 'none';
+        }, 3000);
+
+        await fetchAndDisplayActivities();
+    } catch (error) {
+        playError.textContent = 'Errore nell\'aggiunta dell\'attività: ' + error.message;
+        playError.style.display = 'block';
+    } finally {
+        playLoading.style.display = 'none';
+    }
+}
+
+// ============== PLAYELE - DELETE ACTIVITY ==============
+async function handleDeleteActivity(id) {
+    if (!confirm('Sei sicuro di voler eliminare questa attività?')) {
+        return;
+    }
+
+    const playLoading = document.getElementById('playLoading');
+    const playError = document.getElementById('playError');
+    const playSuccess = document.getElementById('playSuccess');
+    
+    try {
+        playLoading.style.display = 'block';
+        playError.style.display = 'none';
+
+        const { error } = await supabaseClient
+            .from('activities')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        playSuccess.textContent = 'Attività eliminata con successo!';
+        playSuccess.style.display = 'block';
+        
+        setTimeout(() => {
+            playSuccess.style.display = 'none';
+        }, 3000);
+
+        await fetchAndDisplayActivities();
+    } catch (error) {
+        playError.textContent = 'Errore nell\'eliminazione dell\'attività: ' + error.message;
+        playError.style.display = 'block';
+    } finally {
+        playLoading.style.display = 'none';
+    }
+}
 
 // ============== FETCH ALL ITEMS ==============
 async function fetchAndDisplayItems() {
