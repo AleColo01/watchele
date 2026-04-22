@@ -13,11 +13,7 @@
 <body>
     <div class="container">
         <!-- NAVIGATION BAR -->
-        <nav class="navbar">
-            <button class="nav-btn" id="navHome" data-page="home">🐧 ELE</button>
-            <button class="nav-btn" id="navWatch" data-page="watch">📺 watchele</button>
-            <button class="nav-btn" id="navPlay" data-page="play">🎮 PlayEle</button>
-        </nav>
+        <button class="back-btn" id="backBtn" style="display:none;" onclick="showPage('home')">← Indietro</button>
 
         <!-- HOME PAGE - ELE -->
         <section id="home-section" class="page-section active">
@@ -31,14 +27,14 @@
             <div class="home-grid">
                 <div class="home-card" id="card-watch">
                     <div class="card-icon">📺</div>
-                    <h2>watchele</h2>
-                    <p>Traccia i tuoi film e serie preferiti con voti dettagliati e note personali</p>
+                    <h2>WatchEle</h2>
+                    <p>Traccia i tuoi film e serie preferiti con voti dettagliati e note personali!</p>
                     <button class="btn-primary">Entra</button>
                 </div>
                 <div class="home-card" id="card-play">
                     <div class="card-icon">🎮</div>
                     <h2>PlayEle</h2>
-                    <p>Competi con le tue attività e vedi chi vince di più con le icone divertenti</p>
+                    <p>Competi con le tue attività e vedi chi vince di più!</p>
                     <button class="btn-primary">Entra</button>
                 </div>
             </div>
@@ -240,6 +236,8 @@
             </div>
         </section>
 
+        </section>
+
         <!-- PLAYELE PAGE -->
         <section id="play-section" class="page-section">
             <header>
@@ -308,6 +306,28 @@
 
     <!-- Supabase JavaScript Client Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.js"></script>
+
+    <!-- Navigation Functions (Global) -->
+    <script>
+        function showPage(page) {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            const targetSection = document.getElementById(page + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            updateActiveNav(page);
+        }
+
+        function updateActiveNav(page) {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            navButtons.forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-page') === page);
+            });
+        }
+    </script>
 
     <!-- Form Toggle Script -->
     <script>
@@ -406,27 +426,8 @@
             // Set active nav button on init
             updateActiveNav('home');
         });
-
-        function showPage(page) {
-            const sections = document.querySelectorAll('.page-section');
-            sections.forEach(section => section.classList.remove('active'));
-            
-            const targetSection = document.getElementById(page + '-section');
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-
-            updateActiveNav(page);
-        }
-
-        function updateActiveNav(page) {
-            const navButtons = document.querySelectorAll('.nav-btn');
-            navButtons.forEach(btn => {
-                btn.classList.toggle('active', btn.getAttribute('data-page') === page);
-            });
-        }
     </script>
 
-    <script src="app.js"></script>
+    <script src="app.js?nocache=1"></script>
 </body>
 </html>

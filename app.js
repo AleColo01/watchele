@@ -1,4 +1,5 @@
 // ============== SUPABASE CONFIGURATION ==============
+console.log('app.js starting to load...');
 const SUPABASE_URL = 'https://jtqgvgjvewoloveyrnln.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0cWd2Z2p2ZXdvbG92ZXlybmxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNjA4MzEsImV4cCI6MjA5MTkzNjgzMX0.MzjwHlzDgh223DACNzDLb403-YcB5jBdpnrQk_E1xNc';
 
@@ -14,6 +15,7 @@ const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============== STATE ==============
 let allItems = [];
+let allActivities = [];
 
 // ============== DOM ELEMENTS ==============
 const form = document.getElementById('addForm');
@@ -38,11 +40,11 @@ const errorMessage = document.getElementById('error');
 const loadingMessage = document.getElementById('loading');
 
 // ============== EVENT LISTENERS ==============
-form.addEventListener('submit', handleAddItem);
-searchInput.addEventListener('input', applyFiltersAndSort);
-sortSelect.addEventListener('change', applyFiltersAndSort);
-filterType.addEventListener('change', applyFiltersAndSort);
-filterRisiguarda.addEventListener('change', applyFiltersAndSort);
+if (form) form.addEventListener('submit', handleAddItem);
+if (searchInput) searchInput.addEventListener('input', applyFiltersAndSort);
+if (sortSelect) sortSelect.addEventListener('change', applyFiltersAndSort);
+if (filterType) filterType.addEventListener('change', applyFiltersAndSort);
+if (filterRisiguarda) filterRisiguarda.addEventListener('change', applyFiltersAndSort);
 
 // ============== INITIALIZATION ==============
 document.addEventListener('DOMContentLoaded', async () => {
@@ -134,8 +136,6 @@ function getActivityIcon(name) {
 }
 
 // ============== PLAYELE - INITIALIZATION ==============
-let allActivities = [];
-
 function initPlayEle() {
     fetchAndDisplayActivities();
 }
@@ -146,7 +146,7 @@ async function fetchAndDisplayActivities() {
     const playError = document.getElementById('playError');
     
     try {
-        playLoading.style.display = 'block';
+        if (playLoading) playLoading.style.display = 'block';
         
         const { data, error } = await supabaseClient
             .from('activities')
@@ -158,11 +158,14 @@ async function fetchAndDisplayActivities() {
         allActivities = data || [];
         displayLeaderboard();
         displayActivities();
-        playLoading.style.display = 'none';
+        if (playLoading) playLoading.style.display = 'none';
     } catch (error) {
-        playError.textContent = 'Errore nel caricamento delle attività: ' + error.message;
-        playError.style.display = 'block';
-        playLoading.style.display = 'none';
+        if (playError) {
+            playError.textContent = 'Errore nel caricamento delle attività: ' + error.message;
+            playError.style.display = 'block';
+        }
+        console.error('PlayEle fetch error:', error);
+        if (playLoading) playLoading.style.display = 'none';
     }
 }
 
@@ -315,6 +318,22 @@ async function handleDeleteActivity(id) {
         playError.style.display = 'block';
     } finally {
         playLoading.style.display = 'none';
+    }
+}
+
+function showPage(page) {
+    const sections = document.querySelectorAll('.page-section');
+    sections.forEach(section => section.classList.remove('active'));
+    
+    const targetSection = document.getElementById(page + '-section');
+    if (targetSection) {
+        targetSection.classList.add('active');
+    }
+
+    // Mostra il tasto indietro solo se non sei nella home
+    const backBtn = document.getElementById('backBtn');
+    if (backBtn) {
+        backBtn.style.display = page === 'home' ? 'none' : 'block';
     }
 }
 
