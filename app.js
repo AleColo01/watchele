@@ -191,7 +191,7 @@ function displayLeaderboard() {
     // Sort by wins descending
     const standings = [
         { name: 'ELE', wins: winCounts['ELE'], icon: '🐧' },
-        { name: 'ALE', wins: winCounts['ALE'], icon: '🎭' }
+        { name: 'ALE', wins: winCounts['ALE'], icon: '🐦' }
     ].sort((a, b) => b.wins - a.wins);
     
     leaderboard.innerHTML = standings.map((player, index) => `
