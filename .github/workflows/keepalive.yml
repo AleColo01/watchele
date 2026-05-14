@@ -1,0 +1,26 @@
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # ogni giorno alle 08:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: 'https://jtqgvgjvewoloveyrnln.supabase.co'
+          SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp0cWd2Z2p2ZXdvbG92ZXlybmxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYzNjA4MzEsImV4cCI6MjA5MTkzNjgzMX0.MzjwHlzDgh223DACNzDLb403-YcB5jBdpnrQk_E1xNc'
+          SUPABASE_TABLE: ${{ secrets.SUPABASE_TABLE }}
+        run: |
+          set -e
+          TABLE="${SUPABASE_TABLE:-movies}"
+          echo "Eseguo ping a Supabase su tabella: $TABLE"
+          curl -sSf \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Accept: application/json" \
+            "$SUPABASE_URL/rest/v1/$TABLE?select=id&limit=1" > /dev/null
+          echo "Ping riuscito"
