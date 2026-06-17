@@ -583,6 +583,110 @@ header p {
     font-weight: 500;
 }
 
+.tmdb-suggestions {
+    margin-top: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    max-height: 340px;
+    overflow-y: auto;
+}
+
+.tmdb-suggestion-item {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    gap: 12px;
+    border: none;
+    background: transparent;
+    padding: 10px 12px;
+    color: inherit;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    transition: background-color 0.2s ease;
+}
+
+.tmdb-suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.tmdb-suggestion-item:hover,
+.tmdb-suggestion-item:focus {
+    background: rgba(99, 102, 241, 0.08);
+}
+
+.tmdb-suggestion-poster {
+    min-width: 56px;
+    min-height: 84px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-input);
+}
+
+.tmdb-suggestion-poster img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.tmdb-suggestion-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.tmdb-suggestion-title {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.tmdb-suggestion-meta {
+    font-size: 0.88em;
+    color: var(--text-muted);
+}
+
+.tmdb-suggestion-empty {
+    padding: 14px;
+    color: var(--text-muted);
+    font-size: 0.95em;
+}
+
+.poster-preview {
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(99,102,241,0.06));
+    border: 1px solid rgba(255,255,255,0.08);
+}
+
+.poster-preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 0.95em;
+    color: var(--text-primary);
+}
+
+.poster-preview img {
+    width: 100%;
+    max-width: 160px;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+}
+
+.btn-small {
+    padding: 8px 12px;
+    font-size: 0.9em;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;

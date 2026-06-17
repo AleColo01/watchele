@@ -7,12 +7,16 @@
 -- DROP TABLE IF EXISTS movies;
 
 -- Create movies table with new fields
+-- If your existing database is already live, add this column without dropping data:
+-- ALTER TABLE movies ADD COLUMN season integer CHECK (season >= 1);
+
 CREATE TABLE movies (
   id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   
   -- Basic info
   title text NOT NULL,
   type text NOT NULL CHECK (type IN ('movie', 'series')),
+  season integer CHECK (season >= 1),
   poster_url text,
   
   -- Individual ratings (1-10)

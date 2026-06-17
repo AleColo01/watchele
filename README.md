@@ -212,9 +212,11 @@ For this personal tracker app, the current setup is fine.
 **Voto Finale Automatico**: Media dei 5 voti
 
 **Campi Aggiuntivi:**
+- Stagione (per le serie TV)
 - Personaggio preferito (opzionale)
 - "Lo risiguarderebbe?" (checkbox)
 - URL copertina (opzionale o ricerca automatica)
+- Suggerimenti titolo da TMDb per scegliere la versione corretta con la copertina
 
 ### Lista con Ricerca e Filtri
 

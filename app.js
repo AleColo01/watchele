@@ -21,6 +21,12 @@ let allActivities = [];
 const form = document.getElementById('addForm');
 const titleInput = document.getElementById('title');
 const typeInput = document.getElementById('type');
+const tmdbSuggestions = document.getElementById('tmdbSuggestions');
+const posterPreview = document.getElementById('posterPreview');
+const posterPreviewImage = document.getElementById('posterPreviewImage');
+const clearPosterSelectionBtn = document.getElementById('clearPosterSelection');
+const seasonInput = document.getElementById('season');
+const seasonField = document.getElementById('seasonField');
 const votoInizioInput = document.getElementById('votoInizio');
 const votoFineInput = document.getElementById('votoFine');
 const votoTecnicoInput = document.getElementById('votoTecnico');
@@ -39,15 +45,45 @@ const successMessage = document.getElementById('success');
 const errorMessage = document.getElementById('error');
 const loadingMessage = document.getElementById('loading');
 
+let selectedPosterUrl = null;
+let selectedMediaType = null;
+let suggestionTimer = null;
+
 // ============== EVENT LISTENERS ==============
 if (form) form.addEventListener('submit', handleAddItem);
 if (searchInput) searchInput.addEventListener('input', applyFiltersAndSort);
 if (sortSelect) sortSelect.addEventListener('change', applyFiltersAndSort);
 if (filterType) filterType.addEventListener('change', applyFiltersAndSort);
 if (filterRisiguarda) filterRisiguarda.addEventListener('change', applyFiltersAndSort);
+if (typeInput) typeInput.addEventListener('change', () => {
+    toggleSeasonField();
+    clearTmdbSelection();
+});
+if (titleInput) {
+    titleInput.addEventListener('input', handleTitleInput);
+}
+if (document) {
+    document.addEventListener('click', function(e) {
+        if (!tmdbSuggestions || !titleInput) return;
+        if (e.target === titleInput || tmdbSuggestions.contains(e.target)) return;
+        hideTmdbSuggestions();
+    });
+}
+if (itemsList) {
+    itemsList.addEventListener('click', function(e) {
+        const editBtn = e.target.closest('.btn-edit');
+        if (!editBtn) return;
+
+        const itemId = editBtn.dataset.id;
+        const currentTitle = editBtn.dataset.title || '';
+        handleEditTitle(itemId, currentTitle);
+    });
+}
 
 // ============== INITIALIZATION ==============
 document.addEventListener('DOMContentLoaded', async () => {
+    toggleSeasonField();
+    clearTmdbSelection();
     // Initialize WatchEle
     await fetchAndDisplayItems();
     
@@ -337,6 +373,159 @@ function showPage(page) {
     }
 }
 
+function handleTitleInput() {
+    if (!titleInput) return;
+
+    clearTmdbSelection();
+    const query = titleInput.value.trim();
+
+    if (query.length < 3) {
+        hideTmdbSuggestions();
+        return;
+    }
+
+    if (suggestionTimer) {
+        clearTimeout(suggestionTimer);
+    }
+
+    suggestionTimer = setTimeout(() => {
+        fetchTmdbSuggestions(query);
+    }, 300);
+}
+
+async function fetchTmdbSuggestions(query) {
+    if (!tmdbSuggestions || !TMDB_API_KEY || TMDB_API_KEY === 'INSERISCI_QUI_LA_TUA_CHIAVE_TMDB') {
+        hideTmdbSuggestions();
+        return;
+    }
+
+    try {
+        const searchUrl = `${TMDB_API_URL}/search/multi?query=${encodeURIComponent(query)}&language=it-IT&page=1`;
+        const response = await fetch(searchUrl, {
+            headers: {
+                'Authorization': `Bearer ${TMDB_API_KEY}`,
+                'accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            hideTmdbSuggestions();
+            return;
+        }
+
+        const data = await response.json();
+        const results = (data.results || []).filter(item => item.media_type === 'movie' || item.media_type === 'tv');
+        renderTmdbSuggestions(results);
+    } catch (error) {
+        console.error('Errore suggerimenti TMDb:', error);
+        hideTmdbSuggestions();
+    }
+}
+
+function renderTmdbSuggestions(results) {
+    if (!tmdbSuggestions) return;
+
+    if (results.length === 0) {
+        tmdbSuggestions.innerHTML = '<div class="tmdb-suggestion-empty">Nessun risultato trovato</div>';
+        tmdbSuggestions.style.display = 'block';
+        return;
+    }
+
+    tmdbSuggestions.innerHTML = results.slice(0, 6).map(result => {
+        const title = escapeHtml(result.title || result.name || 'Titolo sconosciuto');
+        const year = escapeHtml((result.release_date || result.first_air_date || '').slice(0, 4));
+        const typeLabel = result.media_type === 'movie' ? 'Film' : 'Serie';
+        const posterPath = result.poster_path ? `https://image.tmdb.org/t/p/w92${result.poster_path}` : '';
+
+        return `
+            <button type="button" class="tmdb-suggestion-item" data-title="${title}" data-type="${result.media_type === 'movie' ? 'movie' : 'series'}" data-poster="${posterPath}">
+                <div class="tmdb-suggestion-poster">
+                    ${posterPath ? `<img src="${posterPath}" alt="${title}" loading="lazy">` : '<span>📺</span>'}
+                </div>
+                <div class="tmdb-suggestion-info">
+                    <div class="tmdb-suggestion-title">${title}</div>
+                    <div class="tmdb-suggestion-meta">${typeLabel}${year ? ' · ' + year : ''}</div>
+                </div>
+            </button>
+        `;
+    }).join('');
+
+    tmdbSuggestions.style.display = 'block';
+}
+
+function hideTmdbSuggestions() {
+    if (!tmdbSuggestions) return;
+    tmdbSuggestions.style.display = 'none';
+    tmdbSuggestions.innerHTML = '';
+}
+
+function clearTmdbSelection() {
+    selectedPosterUrl = null;
+    selectedMediaType = null;
+    hidePosterPreview();
+}
+
+if (tmdbSuggestions) {
+    tmdbSuggestions.addEventListener('click', function(e) {
+        const itemButton = e.target.closest('.tmdb-suggestion-item');
+        if (!itemButton) return;
+
+        const title = itemButton.dataset.title || '';
+        const type = itemButton.dataset.type || '';
+        const poster = itemButton.dataset.poster || '';
+
+        if (title && titleInput) {
+            titleInput.value = title;
+        }
+        if (type && typeInput) {
+            typeInput.value = type;
+            toggleSeasonField();
+        }
+        selectedPosterUrl = poster || null;
+        selectedMediaType = type || null;
+        updatePosterPreview();
+        hideTmdbSuggestions();
+    });
+}
+
+if (clearPosterSelectionBtn) {
+    clearPosterSelectionBtn.addEventListener('click', function() {
+        clearTmdbSelection();
+        hidePosterPreview();
+    });
+}
+
+function updatePosterPreview() {
+    if (!posterPreview || !posterPreviewImage) return;
+    if (selectedPosterUrl) {
+        posterPreviewImage.src = selectedPosterUrl;
+        posterPreview.style.display = 'block';
+    } else {
+        hidePosterPreview();
+    }
+}
+
+function hidePosterPreview() {
+    if (!posterPreview || !posterPreviewImage) return;
+    posterPreview.style.display = 'none';
+    posterPreviewImage.src = '';
+}
+
+function toggleSeasonField() {
+    if (!seasonField || !typeInput) return;
+
+    if (typeInput.value === 'series') {
+        seasonField.style.display = 'block';
+        if (seasonInput) seasonInput.required = true;
+    } else {
+        seasonField.style.display = 'none';
+        if (seasonInput) {
+            seasonInput.required = false;
+            seasonInput.value = '';
+        }
+    }
+}
+
 // ============== FETCH ALL ITEMS ==============
 async function fetchAndDisplayItems() {
     showLoading(true);
@@ -468,6 +657,9 @@ function createItemElement(item) {
     `;
 
     let notesHTML = '';
+    if (item.type === 'series' && item.season) {
+        notesHTML += `<div class="item-notes"><strong>Stagione:</strong> ${escapeHtml(String(item.season))}</div>`;
+    }
     if (item.personaggio_preferito) {
         notesHTML += `<div class="item-notes"><strong>Personaggio preferito:</strong> ${escapeHtml(item.personaggio_preferito)}</div>`;
     }
@@ -492,6 +684,7 @@ function createItemElement(item) {
             ${notesHTML}
         </div>
         <div class="item-actions">
+            <button class="btn-secondary btn-edit" data-id="${item.id}" data-title="${escapeHtml(item.title)}">Modifica Titolo</button>
             <button class="btn-danger" onclick="handleDeleteItem(${item.id})">Elimina</button>
         </div>
     `;
@@ -544,6 +737,8 @@ async function handleAddItem(e) {
 
     const title = titleInput.value.trim();
     const type = typeInput.value;
+    const seasonValue = seasonInput ? parseInt(seasonInput.value) : NaN;
+    const season = type === 'series' && Number.isFinite(seasonValue) ? seasonValue : null;
     const votoInizio = parseInt(votoInizioInput.value);
     const votoFine = parseInt(votoFineInput.value);
     const votoTecnico = parseInt(votoTecnicoInput.value);
@@ -558,11 +753,16 @@ async function handleAddItem(e) {
         return;
     }
 
+    if (type === 'series' && !Number.isFinite(season)) {
+        showError('Per favore, inserisci la stagione per la serie.');
+        return;
+    }
+
     try {
         showLoading(true);
 
         // Always fetch poster automatically from TMDb
-        const posterUrl = await fetchPosterUrl(title);
+        const posterUrl = selectedPosterUrl || await fetchPosterUrl(title);
 
         // Insert into database
         const { data, error } = await supabaseClient
@@ -570,6 +770,7 @@ async function handleAddItem(e) {
             .insert([{
                 title,
                 type,
+                season,
                 voto_inizio: votoInizio,
                 voto_fine: votoFine,
                 voto_tecnico: votoTecnico,
@@ -585,6 +786,8 @@ async function handleAddItem(e) {
         if (error) throw error;
 
         form.reset();
+        toggleSeasonField();
+        clearTmdbSelection();
         showError('');
         showSuccess('Voce aggiunta con successo!');
 
@@ -622,6 +825,38 @@ async function handleDeleteItem(id) {
         setTimeout(() => showSuccess(''), 3000);
     } catch (error) {
         showError('Errore nell\'eliminazione della voce: ' + error.message);
+    } finally {
+        showLoading(false);
+    }
+}
+
+// ============== EDIT TITLE ==============
+async function handleEditTitle(id, currentTitle) {
+    const newTitle = prompt('Inserisci il nuovo titolo per film/serie:', currentTitle);
+    if (newTitle === null) return;
+
+    const trimmedTitle = newTitle.trim();
+    if (!trimmedTitle) {
+        showError('Il titolo non può essere vuoto.');
+        return;
+    }
+
+    try {
+        showLoading(true);
+        const { error } = await supabaseClient
+            .from('movies')
+            .update({ title: trimmedTitle })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        showError('');
+        showSuccess('Titolo aggiornato con successo!');
+
+        await fetchAndDisplayItems();
+        setTimeout(() => showSuccess(''), 3000);
+    } catch (error) {
+        showError('Errore nell\'aggiornamento del titolo: ' + error.message);
     } finally {
         showLoading(false);
     }
