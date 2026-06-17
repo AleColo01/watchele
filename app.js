@@ -624,7 +624,8 @@ function createItemElement(item) {
 
     const rating = calculateRating(item);
     const stars = '⭐'.repeat(Math.round(rating));
-    
+    const typeLabel = item.type === 'movie' ? '🎬 Film' : '📺 Serie';
+    const seasonHTML = item.type === 'series' && item.season ? `<div class="item-season">Stagione ${escapeHtml(String(item.season))}</div>` : '';
     const dateAdded = new Date(item.created_at).toLocaleDateString('it-IT', {
         day: '2-digit',
         month: '2-digit',
@@ -657,37 +658,56 @@ function createItemElement(item) {
     `;
 
     let notesHTML = '';
-    if (item.type === 'series' && item.season) {
-        notesHTML += `<div class="item-notes"><strong>Stagione:</strong> ${escapeHtml(String(item.season))}</div>`;
-    }
     if (item.personaggio_preferito) {
         notesHTML += `<div class="item-notes"><strong>Personaggio preferito:</strong> ${escapeHtml(item.personaggio_preferito)}</div>`;
     }
     if (item.risiguarderebbe) {
-        notesHTML += `<div style="margin-top: 8px;"><span class="risiguarda-badge">✓ rewatch approved</span></div>`;
+        notesHTML += `<div class="item-notes"><span class="risiguarda-badge">✓ rewatch approved</span></div>`;
     }
 
     const posterHTML = item.poster_url 
-        ? `<img src="${item.poster_url}" alt="${escapeHtml(item.title)}" class="item-poster" onerror="this.style.display='none'">`
-        : '';
+        ? `<div class="item-post-wrapper"><img src="${item.poster_url}" alt="${escapeHtml(item.title)}" class="item-poster" onerror="this.style.display='none'"></div>`
+        : '<div class="item-post-wrapper item-no-poster"><span>🎬</span></div>';
 
     div.innerHTML = `
-        ${posterHTML}
-        <div class="item-content">
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            <div class="item-meta">
-                <span class="item-type">${item.type === 'movie' ? '🎬 Film' : '📺 Serie'}</span>
-                <span class="item-rating-final">${stars} ${rating.toFixed(1)}/10</span>
-                <span style="font-size: 0.85em; color: var(--text-secondary);">${dateAdded}</span>
+        <div class="item-card">
+            <div class="item-face item-front">
+                ${posterHTML}
+                <div class="item-content">
+                    <div class="item-title">${escapeHtml(item.title)}</div>
+                    <div class="item-meta">
+                        <span class="item-type">${typeLabel}</span>
+                    </div>
+                    ${seasonHTML}
+                    <div class="item-rating-main">${stars} ${rating.toFixed(1)}/10</div>
+                    <div class="item-click-tip">Clicca per vedere i dettagli</div>
+                </div>
             </div>
-            ${ratingBreakdownHTML}
-            ${notesHTML}
-        </div>
-        <div class="item-actions">
-            <button class="btn-secondary btn-edit" data-id="${item.id}" data-title="${escapeHtml(item.title)}">Modifica Titolo</button>
-            <button class="btn-danger" onclick="handleDeleteItem(${item.id})">Elimina</button>
+            <div class="item-face item-back">
+                ${posterHTML}
+                <div class="item-content">
+                    <div class="item-title">${escapeHtml(item.title)}</div>
+                    <div class="item-meta">
+                        <span class="item-type">${typeLabel}</span>
+                        <span class="item-rating-final">${stars} ${rating.toFixed(1)}/10</span>
+                        <span class="item-date">${dateAdded}</span>
+                    </div>
+                    ${ratingBreakdownHTML}
+                    ${seasonHTML}
+                    ${notesHTML}
+                </div>
+                <div class="item-actions">
+                    <button class="btn-secondary btn-edit" data-id="${item.id}" data-title="${escapeHtml(item.title)}">Modifica Titolo</button>
+                    <button class="btn-danger" onclick="handleDeleteItem(${item.id})">Elimina</button>
+                </div>
+            </div>
         </div>
     `;
+
+    div.addEventListener('click', function(e) {
+        if (e.target.closest('button')) return;
+        div.classList.toggle('flipped');
+    });
 
     return div;
 }
@@ -843,15 +863,21 @@ async function handleEditTitle(id, currentTitle) {
 
     try {
         showLoading(true);
+        const posterUrl = await fetchPosterUrl(trimmedTitle);
+        const updateData = { title: trimmedTitle };
+        if (posterUrl) {
+            updateData.poster_url = posterUrl;
+        }
+
         const { error } = await supabaseClient
             .from('movies')
-            .update({ title: trimmedTitle })
+            .update(updateData)
             .eq('id', id);
 
         if (error) throw error;
 
         showError('');
-        showSuccess('Titolo aggiornato con successo!');
+        showSuccess(posterUrl ? 'Titolo e copertina aggiornati con successo!' : 'Titolo aggiornato con successo! Copertina non trovata.');
 
         await fetchAndDisplayItems();
         setTimeout(() => showSuccess(''), 3000);
