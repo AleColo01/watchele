@@ -624,7 +624,6 @@ function createItemElement(item) {
 
     const rating = calculateRating(item);
     const stars = '⭐'.repeat(Math.round(rating));
-    const typeLabel = item.type === 'movie' ? '🎬 Film' : '📺 Serie';
     const seasonHTML = item.type === 'series' && item.season ? `<div class="item-season">Stagione ${escapeHtml(String(item.season))}</div>` : '';
     const dateAdded = new Date(item.created_at).toLocaleDateString('it-IT', {
         day: '2-digit',
@@ -665,40 +664,37 @@ function createItemElement(item) {
         notesHTML += `<div class="item-notes"><span class="risiguarda-badge">✓ rewatch approved</span></div>`;
     }
 
-    const posterHTML = item.poster_url 
-        ? `<div class="item-post-wrapper"><img src="${item.poster_url}" alt="${escapeHtml(item.title)}" class="item-poster" onerror="this.style.display='none'"></div>`
-        : '<div class="item-post-wrapper item-no-poster"><span>🎬</span></div>';
+    const frontStyle = item.poster_url
+        ? `background-image: linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url('${item.poster_url}');`
+        : 'background: linear-gradient(135deg, rgba(30,41,82,0.95), rgba(15,23,42,0.95));';
 
     div.innerHTML = `
         <div class="item-card">
-            <div class="item-face item-front">
-                ${posterHTML}
-                <div class="item-content">
-                    <div class="item-title">${escapeHtml(item.title)}</div>
-                    <div class="item-meta">
-                        <span class="item-type">${typeLabel}</span>
+            <div class="item-face item-front" style="${frontStyle}">
+                <div class="item-front-overlay">
+                    <div>
+                        <div class="item-title">${escapeHtml(item.title)}</div>
+                        ${seasonHTML}
                     </div>
-                    ${seasonHTML}
-                    <div class="item-rating-main">${stars} ${rating.toFixed(1)}/10</div>
-                    <div class="item-click-tip">Clicca per vedere i dettagli</div>
+                    <div>
+                        <div class="item-rating-main">${stars} ${rating.toFixed(1)}/10</div>
+                        <div class="item-click-tip">Clicca per vedere i dettagli</div>
+                    </div>
                 </div>
             </div>
             <div class="item-face item-back">
-                ${posterHTML}
-                <div class="item-content">
-                    <div class="item-title">${escapeHtml(item.title)}</div>
-                    <div class="item-meta">
-                        <span class="item-type">${typeLabel}</span>
-                        <span class="item-rating-final">${stars} ${rating.toFixed(1)}/10</span>
-                        <span class="item-date">${dateAdded}</span>
+                <div class="item-back-content">
+                    <div>
+                        <div class="item-title">${escapeHtml(item.title)}</div>
+                        ${seasonHTML}
+                        <div class="item-date">${dateAdded}</div>
                     </div>
                     ${ratingBreakdownHTML}
-                    ${seasonHTML}
                     ${notesHTML}
-                </div>
-                <div class="item-actions">
-                    <button class="btn-secondary btn-edit" data-id="${item.id}" data-title="${escapeHtml(item.title)}">Modifica Titolo</button>
-                    <button class="btn-danger" onclick="handleDeleteItem(${item.id})">Elimina</button>
+                    <div class="item-actions">
+                        <button class="btn-secondary btn-edit" data-id="${item.id}" data-title="${escapeHtml(item.title)}">Modifica Titolo</button>
+                        <button class="btn-danger" onclick="handleDeleteItem(${item.id})">Elimina</button>
+                    </div>
                 </div>
             </div>
         </div>
