@@ -671,6 +671,7 @@ function createItemElement(item) {
     div.innerHTML = `
         <div class="item-card">
             <div class="item-face item-front" style="${frontStyle}">
+                <div class="item-info-icon" title="Mostra dettagli">i</div>
                 <div class="item-front-overlay">
                     <div>
                         <div class="item-title">${escapeHtml(item.title)}</div>
@@ -678,7 +679,6 @@ function createItemElement(item) {
                     </div>
                     <div>
                         <div class="item-rating-main">${stars} ${rating.toFixed(1)}/10</div>
-                        <div class="item-click-tip">Clicca per vedere i dettagli</div>
                     </div>
                 </div>
             </div>
@@ -860,10 +860,10 @@ async function handleEditTitle(id, currentTitle) {
     try {
         showLoading(true);
         const posterUrl = await fetchPosterUrl(trimmedTitle);
-        const updateData = { title: trimmedTitle };
-        if (posterUrl) {
-            updateData.poster_url = posterUrl;
-        }
+        const updateData = {
+            title: trimmedTitle,
+            poster_url: posterUrl
+        };
 
         const { error } = await supabaseClient
             .from('movies')
@@ -873,7 +873,7 @@ async function handleEditTitle(id, currentTitle) {
         if (error) throw error;
 
         showError('');
-        showSuccess(posterUrl ? 'Titolo e copertina aggiornati con successo!' : 'Titolo aggiornato con successo! Copertina non trovata.');
+        showSuccess(posterUrl ? 'Titolo e copertina aggiornati con successo!' : 'Titolo aggiornato con successo! Copertina rimossa.' );
 
         await fetchAndDisplayItems();
         setTimeout(() => showSuccess(''), 3000);
